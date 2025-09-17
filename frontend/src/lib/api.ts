@@ -24,6 +24,24 @@ api.interceptors.request.use(
   }
 );
 
+export async function fakeApiLogin(email: string, password: string) {
+  return new Promise<any>((resolve, reject) => {
+    setTimeout(() => {
+      if (email === "test@example.com" && password === "password123") {
+        resolve({
+          id: "1",
+          name: "Test User",
+          email: "test@example.com",
+          phoneNumber: "123-456-7890",
+          userType: "student",
+        });
+      } else {
+        reject(new Error("Invalid email or password"));
+      }
+    }, 1000);
+  });
+}
+
 // Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,

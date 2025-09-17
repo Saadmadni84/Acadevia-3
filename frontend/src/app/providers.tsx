@@ -145,17 +145,17 @@ export function Providers({ children, session }: ProvidersProps) {
   const updateStreak = () => {
     const lastActivity = localStorage.getItem('lastActivity');
     const today = new Date().toDateString();
-    
+
     if (lastActivity !== today) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      
+
       if (lastActivity === yesterday.toDateString()) {
         setStreak((prev) => prev + 1);
       } else {
         setStreak(1);
       }
-      
+
       localStorage.setItem('lastActivity', today);
     }
   };
@@ -207,9 +207,9 @@ export function Providers({ children, session }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider session={session}>
-        <ThemeProvider 
-          attribute="class" 
-          defaultTheme="system" 
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
@@ -217,7 +217,7 @@ export function Providers({ children, session }: ProvidersProps) {
             <GamificationContext.Provider value={gamificationContextValue}>
               <LearningContext.Provider value={learningContextValue}>
                 {children}
-                <Toaster 
+                <Toaster
                   position="top-right"
                   toastOptions={{
                     duration: 4000,
@@ -278,7 +278,6 @@ export const useLearning = () => {
 // ===== Utility Hook for Auth =====
 export const useAuth = () => {
   const { user, setUser, isLoading } = useApp();
-  
   const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));

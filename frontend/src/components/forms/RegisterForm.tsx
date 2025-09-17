@@ -7,17 +7,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { 
-  User, 
-  Phone, 
-  Mail, 
-  GraduationCap, 
-  Users, 
+import {
+  User,
+  Phone,
+  Mail,
+  GraduationCap,
+  Users,
   BookOpen,
   Loader2,
-  ChevronRight 
+  ChevronRight
 } from 'lucide-react';
-import {authApi} from '@/app/api/auth/send-otp/route';
 // Validation schema
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -69,16 +68,18 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true);
-      
-      // Register user
-      await authApi.register(data);
-      
+
       // Send OTP
-      await authApi.sendOTP(data.phoneNumber, data.userType);
-      
+      await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: data.phoneNumber,
+          userType: data.userType,
+        }),
+      });
+
       toast.success('Registration successful! Please verify OTP');
-      
-      // Redirect to OTP verification with phone number
       router.push(`/auth/verify-otp?phone=${data.phoneNumber}&userType=${data.userType}`);
     } catch (error: any) {
       toast.error(error.message || 'Registration failed');
@@ -108,11 +109,10 @@ export default function RegisterForm() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                  i <= step
+                className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${i <= step
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
-                }`}
+                  }`}
               >
                 {i}
               </div>
@@ -152,11 +152,10 @@ export default function RegisterForm() {
                       setSelectedUserType(type.value);
                       setValue('userType', type.value as any);
                     }}
-                    className={`w-full p-4 rounded-xl border-2 transition-all ${
-                      selectedUserType === type.value
+                    className={`w-full p-4 rounded-xl border-2 transition-all ${selectedUserType === type.value
                         ? `border-${type.color}-500 bg-${type.color}-50 dark:bg-${type.color}-900/20`
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-4">
                       <div className={`p-3 rounded-lg bg-${type.color}-100 dark:bg-${type.color}-900/40`}>

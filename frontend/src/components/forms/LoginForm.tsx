@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/app/providers';
 import { useToast } from '@/hooks/use-toast';
+import { fakeApiLogin } from '@/lib/api';
 
 // Then use it like this:
-const { toast } = useToast();
+
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -23,8 +24,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const {login } = useAuth();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,17 +42,14 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setIsLoading(true);
-      await login({
-        email: data.email,
-        password: data.password,
-        rememberMe: data.rememberMe,
-      });
-      
+      const user = await fakeApiLogin(data.email, data.password);
+      login(user);
+
       toast({
         title: 'Success',
         description: 'You have been logged in successfully.',
       });
-      
+
       navigate('/dashboard');
     } catch (error) {
       toast({
@@ -182,7 +181,7 @@ export default function LoginForm() {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => {/* Handle Google login */}}
+              onClick={() => {/* Handle Google login */ }}
               disabled={isLoading}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
