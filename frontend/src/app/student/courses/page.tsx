@@ -1,361 +1,321 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Header } from '@/components/common/Header';
-import { Sidebar } from '@/components/common/Sidebar';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Dialog } from '@/components/ui/Dialog';
-import { FiBook, FiClock, FiUsers, FiLock, FiPlay, FiStar } from 'react-icons/fi';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { BookOpen, Clock, Star, Trophy, Users, Play, Lock } from 'lucide-react'
 
 interface Course {
-    id: string;
-    title: string;
-    description: string;
-    grade: string;
-    subject: string;
-    instructor: string;
-    thumbnail: string;
-    price: number;
-    discountedPrice?: number;
-    duration: string;
-    lessonsCount: number;
-    enrolledStudents: number;
-    rating: number;
-    isEnrolled: boolean;
-    isPremium: boolean;
-    progress?: number;
-    nextLesson?: {
-        id: string;
-        title: string;
-    };
+  id: string
+  title: string
+  description: string
+  thumbnail: string
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  duration: number // in minutes
+  rating: number
+  studentsEnrolled: number
+  progress?: number // 0-100 for enrolled courses
+  isEnrolled: boolean
+  isLocked: boolean
+  xpReward: number
+  lessonsCount: number
+  category: string
+  instructor: string
 }
 
-export default function CoursesPage() {
-    const [courses, setCourses] = useState<Course[]>([]);
-    const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
-    const [selectedGrade, setSelectedGrade] = useState<string>('all');
-    const [selectedSubject, setSelectedSubject] = useState<string>('all');
-    const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
+export default function StudentCoursesPage() {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<'all' | 'enrolled' | 'available'>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [searchTerm, setSearchTerm] = useState('')
 
-    useEffect(() => {
-        fetchCourses();
-    }, []);
-
-    useEffect(() => {
-        filterCourses();
-    }, [courses, selectedGrade, selectedSubject]);
-
+  // Mock data - replace with actual API call
+  useEffect(() => {
     const fetchCourses = async () => {
-        try {
-            const response = await fetch('/api/student/courses', {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-            const data = await response.json();
-            setCourses(data);
-        } catch (error) {
-            console.error('Error fetching courses:', error);
-        } finally {
-            setLoading(false);
+      // Simulated API call
+      const mockCourses: Course[] = [
+        {
+          id: '1',
+          title: 'JavaScript Fundamentals Quest',
+          description: 'Master the basics of JavaScript through interactive challenges and coding battles.',
+          thumbnail: '/images/javascript-course.jpg',
+          difficulty: 'beginner',
+          duration: 480,
+          rating: 4.8,
+          studentsEnrolled: 1250,
+          progress: 65,
+          isEnrolled: true,
+          isLocked: false,
+          xpReward: 500,
+          lessonsCount: 12,
+          category: 'Programming',
+          instructor: 'Sarah Johnson'
+        },
+        {
+          id: '2',
+          title: 'React Hero Academy',
+          description: 'Build dynamic web applications and earn badges while learning React.js.',
+          thumbnail: '/images/react-course.jpg',
+          difficulty: 'intermediate',
+          duration: 720,
+          rating: 4.9,
+          studentsEnrolled: 890,
+          progress: 0,
+          isEnrolled: false,
+          isLocked: false,
+          xpReward: 750,
+          lessonsCount: 18,
+          category: 'Programming',
+          instructor: 'Mike Chen'
+        },
+        {
+          id: '3',
+          title: 'Advanced Algorithm Arena',
+          description: 'Compete in algorithmic challenges and climb the leaderboard.',
+          thumbnail: '/images/algorithms-course.jpg',
+          difficulty: 'advanced',
+          duration: 960,
+          rating: 4.7,
+          studentsEnrolled: 456,
+          progress: 0,
+          isEnrolled: false,
+          isLocked: true,
+          xpReward: 1000,
+          lessonsCount: 24,
+          category: 'Computer Science',
+          instructor: 'Dr. Emily Rodriguez'
         }
-    };
-
-    const filterCourses = () => {
-        let filtered = [...courses];
-
-        if (selectedGrade !== 'all') {
-            filtered = filtered.filter(course => course.grade === selectedGrade);
-        }
-
-        if (selectedSubject !== 'all') {
-            filtered = filtered.filter(course => course.subject === selectedSubject);
-        }
-
-        setFilteredCourses(filtered);
-    };
-
-    const handleEnroll = (course: Course) => {
-        if (course.isPremium && !course.isEnrolled) {
-            setSelectedCourse(course);
-            setShowPaymentDialog(true);
-        } else {
-            router.push(`/student/courses/${course.id}`);
-        }
-    };
-
-    const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-    const subjects = ['Mathematics', 'Science', 'English', 'History', 'Geography', 'Computer Science'];
-
-    if (loading) {
-        return (
-            <div className="flex h-screen">
-                <Sidebar userType="student" />
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-                </div>
-            </div>
-        );
+      ]
+      
+      setTimeout(() => {
+        setCourses(mockCourses)
+        setLoading(false)
+      }, 1000)
     }
 
+    fetchCourses()
+  }, [])
+
+  const filteredCourses = courses.filter(course => {
+    const matchesFilter = 
+      filter === 'all' || 
+      (filter === 'enrolled' && course.isEnrolled) ||
+      (filter === 'available' && !course.isEnrolled && !course.isLocked)
+
+    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.description.toLowerCase().includes(searchTerm.toLowerCase())
+
+    return matchesFilter && matchesCategory && matchesSearch
+  })
+
+  const categories = ['all', ...Array.from(new Set(courses.map(c => c.category)))]
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'bg-green-100 text-green-800'
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800'
+      case 'advanced': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  if (loading) {
     return (
-        <div className="flex h-screen bg-gray-50">
-            <Sidebar userType="student" />
-
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header />
-
-                <main className="flex-1 overflow-y-auto p-6">
-                    {/* Page Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-800">My Courses</h1>
-                        <p className="text-gray-600 mt-2">Continue learning or explore new courses</p>
-                    </div>
-
-                    {/* Filters */}
-                    <Card className="mb-6 p-4">
-                        <div className="flex flex-wrap gap-4">
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Grade
-                                </label>
-                                <select
-                                    value={selectedGrade}
-                                    onChange={(e) => setSelectedGrade(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                >
-                                    <option value="all">All Grades</option>
-                                    {grades.map(grade => (
-                                        <option key={grade} value={grade}>Grade {grade}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="flex-1 min-w-[200px]">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Subject
-                                </label>
-                                <select
-                                    value={selectedSubject}
-                                    onChange={(e) => setSelectedSubject(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                >
-                                    <option value="all">All Subjects</option>
-                                    {subjects.map(subject => (
-                                        <option key={subject} value={subject}>{subject}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                    </Card>
-
-                    {/* Enrolled Courses */}
-                    {filteredCourses.filter(c => c.isEnrolled).length > 0 && (
-                        <div className="mb-8">
-                            <h2 className="text-xl font-semibold mb-4">Continue Learning</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {filteredCourses.filter(c => c.isEnrolled).map((course) => (
-                                    <motion.div
-                                        key={course.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        whileHover={{ y: -5 }}
-                                    >
-                                        <Card className="overflow-hidden cursor-pointer" onClick={() => router.push(`/student/courses/${course.id}`)}>
-                                            {/* Course Thumbnail */}
-                                            <div className="relative h-48 bg-gradient-to-r from-purple-400 to-blue-500">
-                                                <div className="absolute inset-0 bg-black/20"></div>
-                                                <div className="absolute bottom-4 left-4 text-white">
-                                                    <h3 className="text-xl font-bold">{course.title}</h3>
-                                                    <p className="text-sm opacity-90">{course.subject} • Grade {course.grade}</p>
-                                                </div>
-                                                {/* Progress Bar */}
-                                                {course.progress !== undefined && (
-                                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
-                                                        <div
-                                                            className="h-full bg-green-400 transition-all"
-                                                            style={{ width: `${course.progress}%` }}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="p-4">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <FiClock className="w-4 h-4" />
-                                                        <span>{course.duration}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <FiBook className="w-4 h-4" />
-                                                        <span>{course.lessonsCount} lessons</span>
-                                                    </div>
-                                                </div>
-
-                                                {course.nextLesson && (
-                                                    <div className="mb-4 p-3 bg-purple-50 rounded-lg">
-                                                        <p className="text-xs text-purple-600 mb-1">Next Lesson</p>
-                                                        <p className="text-sm font-medium text-purple-800">{course.nextLesson.title}</p>
-                                                    </div>
-                                                )}
-
-                                                <Button variant="primary" fullWidth>
-                                                    Continue Learning
-                                                </Button>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Available Courses */}
-                    <div>
-                        <h2 className="text-xl font-semibold mb-4">Available Courses</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredCourses.filter(c => !c.isEnrolled).map((course) => (
-                                <motion.div
-                                    key={course.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    whileHover={{ y: -5 }}
-                                >
-                                    <Card className="overflow-hidden">
-                                        {/* Course Thumbnail */}
-                                        <div className="relative h-48 bg-gradient-to-r from-purple-400 to-blue-500">
-                                            <div className="absolute inset-0 bg-black/20"></div>
-                                            <div className="absolute bottom-4 left-4 text-white">
-                                                <h3 className="text-xl font-bold">{course.title}</h3>
-                                                <p className="text-sm opacity-90">{course.subject} • Grade {course.grade}</p>
-                                            </div>
-                                            {course.isPremium && (
-                                                <div className="absolute top-4 right-4">
-                                                    <div className="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                                                        <FiLock className="w-3 h-3" />
-                                                        Premium
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="p-4">
-                                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                                {course.description}
-                                            </p>
-
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <FiUsers className="w-4 h-4" />
-                                                    <span>{course.enrolledStudents} students</span>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <FiStar className="w-4 h-4 text-yellow-500 fill-current" />
-                                                    <span className="text-sm font-medium">{course.rating}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className="text-sm text-gray-600">
-                                                    <FiClock className="w-4 h-4 inline mr-1" />
-                                                    {course.duration}
-                                                </div>
-                                                <div className="text-sm text-gray-600">
-                                                    <FiBook className="w-4 h-4 inline mr-1" />
-                                                    {course.lessonsCount} lessons
-                                                </div>
-                                            </div>
-
-                                            {course.isPremium && (
-                                                <div className="mb-4">
-                                                    <div className="flex items-center gap-2">
-                                                        {course.discountedPrice ? (
-                                                            <>
-                                                                <span className="text-xl font-bold text-green-600">
-                                                                    ₹{course.discountedPrice}
-                                                                </span>
-                                                                <span className="text-sm text-gray-500 line-through">
-                                                                    ₹{course.price}
-                                                                </span>
-                                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                                                    {Math.round(((course.price - course.discountedPrice) / course.price) * 100)}% OFF
-                                                                </span>
-                                                            </>
-                                                        ) : (
-                                                            <span className="text-xl font-bold">₹{course.price}</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <Button
-                                                variant={course.isPremium ? "primary" : "outline"}
-                                                fullWidth
-                                                onClick={() => handleEnroll(course)}
-                                            >
-                                                {course.isPremium ? (
-                                                    <>
-                                                        <FiLock className="w-4 h-4 mr-2" />
-                                                        Enroll Now
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <FiPlay className="w-4 h-4 mr-2" />
-                                                        Start Free
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Payment Dialog */}
-                    <Dialog
-                        isOpen={showPaymentDialog}
-                        onClose={() => setShowPaymentDialog(false)}
-                        title="Complete Your Enrollment"
-                        description="Choose your payment method to unlock this course"
-                    >
-                        {selectedCourse && (
-                            <div>
-                                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                                    <h4 className="font-semibold mb-2">{selectedCourse.title}</h4>
-                                    <p className="text-sm text-gray-600">{selectedCourse.subject} • Grade {selectedCourse.grade}</p>
-                                    <div className="mt-2 text-2xl font-bold">
-                                        ₹{selectedCourse.discountedPrice || selectedCourse.price}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <Button
-                                        variant="primary"
-                                        fullWidth
-                                        onClick={() => router.push(`/student/payment?courseId=${selectedCourse.id}`)}
-                                    >
-                                        Proceed to Payment
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        fullWidth
-                                        onClick={() => setShowPaymentDialog(false)}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </Dialog>
-                </main>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your learning adventure...</p>
         </div>
-    );
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Your Learning Journey
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Discover courses, earn XP, and level up your skills!
+          </p>
+        </div>
+
+        {/* Filters and Search */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex flex-wrap gap-4 items-center justify-between">
+            {/* Search */}
+            <div className="flex-1 min-w-[300px]">
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Filter Buttons */}
+            <div className="flex gap-2">
+              {['all', 'enrolled', 'available'].map((filterOption) => (
+                <button
+                  key={filterOption}
+                  onClick={() => setFilter(filterOption as any)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === filterOption
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Category Filter */}
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            >
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Course Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCourses.map((course) => (
+            <div
+              key={course.id}
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+            >
+              {/* Course Image */}
+              <div className="relative h-48 bg-gradient-to-r from-purple-400 to-blue-500">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <BookOpen className="w-16 h-16 text-white opacity-70" />
+                </div>
+                {course.isLocked && (
+                  <div className="absolute top-4 right-4">
+                    <Lock className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                <div className="absolute bottom-4 left-4">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(course.difficulty)}`}>
+                    {course.difficulty}
+                  </span>
+                </div>
+              </div>
+
+              {/* Course Content */}
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+                  {course.title}
+                </h3>
+                <p className="text-gray-600 mb-4 line-clamp-2">
+                  {course.description}
+                </p>
+
+                {/* Course Stats */}
+                <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{Math.floor(course.duration / 60)}h {course.duration % 60}m</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <span>{course.rating}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    <span>{course.studentsEnrolled}</span>
+                  </div>
+                </div>
+
+                {/* XP Reward */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {course.xpReward} XP
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {course.lessonsCount} lessons
+                  </span>
+                </div>
+
+                {/* Progress Bar (for enrolled courses) */}
+                {course.isEnrolled && course.progress !== undefined && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                      <span>Progress</span>
+                      <span>{course.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${course.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Button */}
+                <Link href={course.isLocked ? '#' : `/student/courses/${course.id}`}>
+                  <button
+                    disabled={course.isLocked}
+                    className={`w-full py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                      course.isLocked
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : course.isEnrolled
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    {course.isLocked ? (
+                      <>
+                        <Lock className="w-4 h-4" />
+                        Locked
+                      </>
+                    ) : course.isEnrolled ? (
+                      <>
+                        <Play className="w-4 h-4" />
+                        Continue Learning
+                      </>
+                    ) : (
+                      <>
+                        <BookOpen className="w-4 h-4" />
+                        Enroll Now
+                      </>
+                    )}
+                  </button>
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredCourses.length === 0 && (
+          <div className="text-center py-12">
+            <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No courses found
+            </h3>
+            <p className="text-gray-600">
+              Try adjusting your search or filter criteria.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }

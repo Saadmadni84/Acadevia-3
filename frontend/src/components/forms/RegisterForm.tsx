@@ -17,7 +17,7 @@ import {
   Loader2,
   ChevronRight 
 } from 'lucide-react';
-import { authApi } from '@/app/api/auth';
+import {authApi} from '@/app/api/auth/send-otp/route';
 // Validation schema
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
