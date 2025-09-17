@@ -119,7 +119,11 @@
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	!function() {
+<<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
 /******/ 		__webpack_require__.h = function() { return "b84f96fee79b25c8"; }
+=======
+/******/ 		__webpack_require__.h = function() { return "2b99c8d233e1c6b6"; }
+>>>>>>> 0022d79d (initial):frontend/.next/static/chunks/webpack.js
 /******/ 	}();
 /******/ 	
 /******/ 	/* webpack/runtime/global */
