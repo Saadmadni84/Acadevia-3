@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "acadevia-gamified-platform",
   "version": "0.1.0",
   "private": true,
@@ -42,5 +43,16 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.2"
+=======
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "lucide-react": "^0.544.0",
+    "react-hook-form": "^7.62.0",
+    "zod": "^4.1.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.1",
+    "@types/react": "^19.1.13"
+>>>>>>> b9346ddf ("initial")
   }
 }
