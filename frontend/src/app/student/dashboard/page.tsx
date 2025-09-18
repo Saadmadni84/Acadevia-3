@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/common/Header';
-import { Sidebar } from '@/components/common/Sidebar';
+import { Sidebar} from '@/components/common/Sidebar';
 import { Card } from '@/components/ui/Card';
 import { LineChart } from '@/components/charts/LineChart';
 import { PieChart } from '@/components/charts/PieChart';

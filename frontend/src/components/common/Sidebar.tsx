@@ -1,129 +1,277 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import {
-    FiHome,
-    FiBook,
-    FiAward,
-    FiUsers,
-    FiBarChart2,
-    FiSettings,
-    FiChevronLeft,
-    FiChevronRight,
-    FiPlay,
-    FiDollarSign,
-} from 'react-icons/fi';
-import { cn } from '@/utils/helpers';
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { 
+  X, Menu, Home, BookOpen, BarChart3, Trophy, User, 
+  Settings, LogOut, ChevronDown, ChevronRight, 
+  Play, Award, Target, Users, Bell, Search
+} from 'lucide-react'
 
 interface SidebarProps {
-    userType: 'student' | 'admin';
+  isOpen: boolean
+  onClose: () => void
+  className?: string
 }
 
-export function Sidebar({ userType }: SidebarProps) {
-    const [collapsed, setCollapsed] = useState(false);
-    const pathname = usePathname();
+interface MenuItem {
+  id: string
+  label: string
+  href: string
+  icon: React.ComponentType<any>
+  badge?: string
+  children?: MenuItem[]
+}
 
-    const studentMenuItems = [
-        { icon: FiHome, label: 'Dashboard', href: '/student/dashboard' },
-        { icon: FiBook, label: 'My Courses', href: '/student/courses' },
-        { icon: FiPlay, label: 'Live Classes', href: '/student/live-classes' },
-        { icon: FiAward, label: 'Achievements', href: '/student/achievements' },
-        { icon: FiUsers, label: 'Study Groups', href: '/student/groups' },
-        { icon: FiBarChart2, label: 'Progress', href: '/student/progress' },
-        { icon: FiDollarSign, label: 'Payments', href: '/student/payments' },
-        { icon: FiSettings, label: 'Settings', href: '/student/settings' },
-    ];
+export default function Sidebar({ isOpen, onClose, className = '' }: SidebarProps) {
+  const pathname = usePathname()
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([])
 
-    const adminMenuItems = [
-        { icon: FiHome, label: 'Dashboard', href: '/admin/dashboard' },
-        { icon: FiBook, label: 'Courses', href: '/admin/courses' },
-        { icon: FiUsers, label: 'Students', href: '/admin/students' },
-        { icon: FiBarChart2, label: 'Analytics', href: '/admin/analytics' },
-        { icon: FiSettings, label: 'Settings', href: '/admin/settings' },
-    ];
+  // Navigation menu items
+  const menuItems: MenuItem[] = [
+    {
+      id: 'home',
+      label: 'Home',
+      href: '/',
+      icon: Home
+    },
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      href: '/student',
+      icon: BarChart3
+    },
+    {
+      id: 'courses',
+      label: 'Courses',
+      href: '/student/courses',
+      icon: BookOpen,
+      badge: 'New',
+      children: [
+        { id: 'all-courses', label: 'All Courses', href: '/courses', icon: BookOpen },
+        { id: 'my-courses', label: 'My Courses', href: '/student/courses', icon: User },
+        { id: 'completed', label: 'Completed', href: '/student/courses/completed', icon: Award }
+      ]
+    },
+    {
+      id: 'progress',
+      label: 'Progress',
+      href: '/progress',
+      icon: Target
+    },
+    {
+      id: 'leaderboard',
+      label: 'Leaderboard',
+      href: '/leaderboard',
+      icon: Trophy
+    },
+    {
+      id: 'profile',
+      label: 'Profile',
+      href: '/Profile',
+      icon: User
+    }
+  ]
 
-    const menuItems = userType === 'student' ? studentMenuItems : adminMenuItems;
+  const toggleExpandedMenu = (menuId: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuId) 
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    )
+  }
 
-    return (
-        <motion.aside
-            initial={false}
-            animate={{ width: collapsed ? 80 : 256 }}
-            className={cn(
-                "bg-white h-full border-r border-gray-200 flex flex-col transition-all duration-300",
-                collapsed ? "w-20" : "w-64"
-            )}
-        >
-            {/* Logo */}
-            <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                    <motion.div
-                        animate={{ opacity: collapsed ? 0 : 1 }}
-                        className="flex items-center gap-2"
-                    >
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                            <span className="text-xl">🎮</span>
-                        </div>
-                        {!collapsed && (
-                            <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                Acadeveia
-                            </span>
-                        )}
-                    </motion.div>
-                    <button
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="p-1 hover:bg-gray-100 rounded"
-                    >
-                        {collapsed ? <FiChevronRight /> : <FiChevronLeft />}
-                    </button>
-                </div>
+  const isMenuExpanded = (menuId: string) => expandedMenus.includes(menuId)
+  
+  const isActive = (href: string) => {
+    if (!pathname) return false
+    if (href === '/') return pathname === '/'
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
+  return (
+    <>
+      {/* Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        fixed top-0 left-0 h-full bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        w-80 lg:w-72
+        ${className}
+      `}>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <BookOpen className="w-6 h-6 text-white" />
             </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">GameLearn</h2>
+              <p className="text-sm text-gray-500">Learning Platform</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
 
-            {/* Menu Items */}
-            <nav className="flex-1 p-4">
-                <ul className="space-y-2">
-                    {menuItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        const Icon = item.icon;
+        {/* Search Bar */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="relative">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search courses..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
 
-                        return (
-                            <li key={item.href}>
-                                <Link
-                                    href={item.href}
-                                    className={cn(
-                                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-all",
-                                        isActive
-                                            ? "bg-purple-50 text-purple-600"
-                                            : "text-gray-600 hover:bg-gray-50"
-                                    )}
-                                >
-                                    <Icon className="w-5 h-5 flex-shrink-0" />
-                                    {!collapsed && (
-                                        <span className="font-medium">{item.label}</span>
-                                    )}
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </nav>
-
-            {/* User Info */}
-            {!collapsed && (
-                <div className="p-4 border-t border-gray-200">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                            <span className="text-purple-600 font-semibold">JS</span>
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-medium text-sm">John Student</p>
-                            <p className="text-xs text-gray-500">Level 12</p>
-                        </div>
-                    </div>
+        {/* Navigation Menu */}
+        <nav className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-2">
+            {menuItems.map((item) => (
+              <div key={item.id}>
+                {/* Main Menu Item */}
+                <div className="group">
+                  {item.children ? (
+                    // Parent menu with children
+                    <button
+                      onClick={() => toggleExpandedMenu(item.id)}
+                      className={`
+                        w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200
+                        ${isActive(item.href) 
+                          ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                        }
+                        group-hover:shadow-sm
+                      `}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className={`w-5 h-5 ${isActive(item.href) ? 'text-blue-600' : 'text-gray-500'}`} />
+                        <span className="font-medium">{item.label}</span>
+                        {item.badge && (
+                          <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                      {isMenuExpanded(item.id) ? (
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      )}
+                    </button>
+                  ) : (
+                    // Direct menu link
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      className={`
+                        flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                        ${isActive(item.href) 
+                          ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                        }
+                        group-hover:shadow-sm
+                      `}
+                    >
+                      <item.icon className={`w-5 h-5 ${isActive(item.href) ? 'text-blue-600' : 'text-gray-500'}`} />
+                      <span className="font-medium">{item.label}</span>
+                      {item.badge && (
+                        <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  )}
                 </div>
-            )}
-        </motion.aside>
-    );
+
+                {/* Submenu Items */}
+                {item.children && isMenuExpanded(item.id) && (
+                  <div className="ml-4 mt-2 space-y-1">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.id}
+                        href={child.href}
+                        onClick={onClose}
+                        className={`
+                          flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200
+                          ${isActive(child.href) 
+                            ? 'bg-blue-50 text-blue-600 border-l-2 border-blue-400' 
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                          }
+                        `}
+                      >
+                        <child.icon className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm">{child.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </nav>
+
+        {/* User Profile Section */}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-800">John Doe</p>
+              <p className="text-xs text-gray-500">Student</p>
+            </div>
+            <button className="p-1 rounded-lg hover:bg-gray-100">
+              <Bell className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="text-center p-2 bg-blue-50 rounded-lg">
+              <div className="text-lg font-bold text-blue-600">12</div>
+              <div className="text-xs text-gray-500">Courses</div>
+            </div>
+            <div className="text-center p-2 bg-green-50 rounded-lg">
+              <div className="text-lg font-bold text-green-600">85%</div>
+              <div className="text-xs text-gray-500">Progress</div>
+            </div>
+            <div className="text-center p-2 bg-yellow-50 rounded-lg">
+              <div className="text-lg font-bold text-yellow-600">24</div>
+              <div className="text-xs text-gray-500">Badges</div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <Play className="w-4 h-4" />
+              <span className="text-sm font-medium">Continue Learning</span>
+            </button>
+            
+            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              <Settings className="w-4 h-4" />
+              <span className="text-sm">Settings</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
 }

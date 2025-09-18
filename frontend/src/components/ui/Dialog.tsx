@@ -1,88 +1,145 @@
-import { Fragment } from 'react';
-import { Dialog as HeadlessDialog, Transition } from '@headlessui/react';
-import { FiX } from 'react-icons/fi';
-import { cn } from '@/utils/helpers';
+'use client'
+
+import React, { useEffect } from 'react'
+import { X } from 'lucide-react'
 
 interface DialogProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title?: string;
-    description?: string;
-    children: React.ReactNode;
-    className?: string;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  children: React.ReactNode
+  className?: string
+  title?: string
+  description?: string
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-export function Dialog({
-    isOpen,
-    onClose,
-    title,
-    description,
-    children,
-    className
+export function Dialog({ 
+  open, 
+  onOpenChange, 
+  children, 
+  className = '',
+  title,
+  description,
+  size = 'md'
 }: DialogProps) {
-    return (
-        <Transition appear show={isOpen} as={Fragment}>
-            <HeadlessDialog as="div" className="relative z-50" onClose={onClose}>
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
-                    <div className="fixed inset-0 bg-black bg-opacity-50" />
-                </Transition.Child>
+  // Handle escape key and body scroll
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && open) {
+        onOpenChange(false)
+      }
+    }
 
-                <div className="fixed inset-0 overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center p-4 text-center">
-                        <Transition.Child
-                            as={Fragment}
-                            enter="ease-out duration-300"
-                            enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
-                            leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
-                            leaveTo="opacity-0 scale-95"
-                        >
-                            <HeadlessDialog.Panel
-                                className={cn(
-                                    "w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all",
-                                    className
-                                )}
-                            >
-                                {(title || description) && (
-                                    <div className="mb-4">
-                                        {title && (
-                                            <HeadlessDialog.Title
-                                                as="h3"
-                                                className="text-lg font-medium leading-6 text-gray-900"
-                                            >
-                                                {title}
-                                            </HeadlessDialog.Title>
-                                        )}
-                                        {description && (
-                                            <HeadlessDialog.Description className="mt-2 text-sm text-gray-500">
-                                                {description}
-                                            </HeadlessDialog.Description>
-                                        )}
-                                    </div>
-                                )}
+    if (open) {
+      document.addEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'hidden'
+    }
 
-                                <button
-                                    onClick={onClose}
-                                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-                                >
-                                    <FiX className="w-5 h-5" />
-                                </button>
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'unset'
+    }
+  }, [open, onOpenChange])
 
-                                {children}
-                            </HeadlessDialog.Panel>
-                        </Transition.Child>
-                    </div>
-                </div>
-            </HeadlessDialog>
-        </Transition>
-    );
+  if (!open) return null
+
+  const sizeClasses = {
+    sm: 'max-w-sm',
+    md: 'max-w-md', 
+    lg: 'max-w-lg',
+    xl: 'max-w-xl'
+  }
+
+  return (
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={() => onOpenChange(false)}
+      />
+      
+      {/* Dialog */}
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div 
+          className={`
+            relative bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} 
+            transform transition-all duration-200 scale-100 opacity-100
+            ${className}
+          `}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          {title && (
+            <div className="flex items-center justify-between p-6 pb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+                {description && (
+                  <p className="text-sm text-gray-500 mt-1">{description}</p>
+                )}
+              </div>
+              
+              <button
+                onClick={() => onOpenChange(false)}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+          )}
+
+          {!title && (
+            <button
+              onClick={() => onOpenChange(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
+              aria-label="Close dialog"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          )}
+
+          {/* Content */}
+          <div className={`px-6 ${title ? 'pb-6' : 'py-6'}`}>
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
+
+// Additional Dialog components for better composition
+export function DialogHeader({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+  return (
+    <div className={`mb-4 ${className}`}>
+      {children}
+    </div>
+  )
+}
+
+export function DialogTitle({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+  return (
+    <h2 className={`text-lg font-semibold text-gray-900 ${className}`}>
+      {children}
+    </h2>
+  )
+}
+
+export function DialogDescription({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+  return (
+    <p className={`text-sm text-gray-500 ${className}`}>
+      {children}
+    </p>
+  )
+}
+
+export function DialogFooter({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+  return (
+    <div className={`flex justify-end space-x-2 mt-6 pt-4 border-t ${className}`}>
+      {children}
+    </div>
+  )
+}
+
+// Default export for flexibility
+export default Dialog
