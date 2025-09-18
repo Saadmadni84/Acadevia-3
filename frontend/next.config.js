@@ -1,7 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove experimental.serverActions - it's no longer needed
-  // Other config options can go here
+  // Disable webpack cache to prevent cache issues
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.cache = false;
+    }
+    return config;
+  },
+  // Experimental features
+  experimental: {
+    forceSwcTransforms: true,
+  },
 }
 
 module.exports = nextConfig
