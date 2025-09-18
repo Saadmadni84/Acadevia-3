@@ -1,29 +1,26 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { Providers } from './providers';
-import { Toaster } from 'react-hot-toast';
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import Header from '@/components/common/Header'
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Acadeveia - Gamified Learning Platform',
-  description: 'Learn, Play, and Excel with our gamified education platform',
-};
+  title: 'GameLearn Platform',
+  description: 'Transform your learning experience with our gamified platform',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers>
-          {children}
-          <Toaster position="top-right" />
-        </Providers>
+        <Header />
+        <main>{children}</main>
       </body>
     </html>
-  );
+  )
 }
