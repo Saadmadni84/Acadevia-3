@@ -1,4 +1,4 @@
-
+// schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,319 +9,202 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  username  String   @unique
-  password  String
-  firstName String?
-  lastName  String?
-  avatar    String?
-  role      Role     @default(STUDENT)
-  level     Int      @default(1)
-  xp        Int      @default(0)
-  coins     Int      @default(0)
-  streak    Int      @default(0)
-  lastLogin DateTime?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  enrollments    Enrollment[]
-  progress       Progress[]
-  achievements   UserAchievement[]
-  payments       Payment[]
-  notifications  Notification[]
-  chatMessages   ChatMessage[]
-  submissions    Submission[]
-  badges         UserBadge[]
+  id                        String    @id @default(cuid())
+  email                     String    @unique
+  username                  String    @unique
+  password                  String
+  isVerified                Boolean   @default(false)  // Your new field
+  emailVerificationToken    String?
+  emailVerificationExpires  DateTime?
+  passwordResetToken        String?
+  passwordResetExpires      DateTime?
+  role                      Role      @default(STUDENT)
+  
+  // Profile fields
+  firstName                 String?
+  lastName                  String?
+  avatar                    String?
+  bio                       String?
+  
+  // Game profile fields
+  level                     Int       @default(1)
+  experience                Int       @default(0)
+  points                    Int       @default(0)
+  badges                    String[]  @default([])
+  achievements              String[]  @default([])
+  
+  // Relations - ADD THESE MISSING FIELDS
+  instructedCourses         Course[]  @relation("CourseInstructor")  // This was missing!
+  enrollments               Enrollment[]
+  quizAttempts              QuizAttempt[]
+  gameProgress              GameProgress[]
+  
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
 
   @@map("users")
 }
 
 model Course {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  thumbnail   String?
-  difficulty  String
-  category    String
-  price       Float    @default(0)
-  xpReward    Int      @default(100)
-  duration    Int      // in minutes
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id             String       @id @default(cuid())
+  title          String
+  description    String
+  thumbnail      String?
+  price          Float?
+  level          CourseLevel  @default(BEGINNER)
+  duration       Int          // in minutes
+  instructorId   String
+  
   // Relations
-  lessons     Lesson[]
-  enrollments Enrollment[]
-  progress    Progress[]
-  quizzes     Quiz[]
+  instructor     User         @relation("CourseInstructor", fields: [instructorId], references: [id])
+  lectures       Lecture[]
+  enrollments    Enrollment[]
+  quizzes        Quiz[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@map("courses")
 }
 
-model Lesson {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  videoUrl  String?
-  order     Int
-  duration  Int      // in minutes
-  xpReward  Int      @default(50)
-  courseId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  progress  Progress[]
-
-  @@map("lessons")
-}
-
 model Enrollment {
-  id           String           @id @default(uuid())
-  userId       String
-  courseId     String
-  status       EnrollmentStatus @default(ACTIVE)
-  enrolledAt   DateTime         @default(now())
-  completedAt  DateTime?
-  progress     Float            @default(0)
-
+  id             String          @id @default(cuid())
+  userId         String
+  courseId       String
+  status         EnrollmentStatus @default(ACTIVE)
+  progress       Float           @default(0) // percentage 0-100
+  completedAt    DateTime?
+  
   // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id])
+  course         Course          @relation(fields: [courseId], references: [id])
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@unique([userId, courseId])
   @@map("enrollments")
 }
 
-model Progress {
-  id         String    @id @default(uuid())
-  userId     String
-  courseId   String
-  lessonId   String
-  isComplete Boolean   @default(false)
-  timeSpent  Int       @default(0) // in minutes
-  completedAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
+model Lecture {
+  id             String      @id @default(cuid())
+  title          String
+  description    String?
+  videoUrl       String?
+  duration       Int         // in minutes
+  order          Int
+  courseId       String
+  
   // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  course         Course      @relation(fields: [courseId], references: [id])
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  @@unique([userId, lessonId])
-  @@map("progress")
+  @@map("lectures")
 }
 
 model Quiz {
-  id        String     @id @default(uuid())
-  title     String
-  courseId  String
-  timeLimit Int?       // in minutes
-  passingScore Int      @default(70)
-  xpReward  Int        @default(100)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
+  id             String        @id @default(cuid())
+  title          String
+  description    String?
+  courseId       String
+  passingScore   Int           @default(70) // percentage
+  timeLimit      Int?          // in minutes
+  
   // Relations
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  questions   Question[]
-  submissions Submission[]
+  course         Course        @relation(fields: [courseId], references: [id])
+  questions      Question[]
+  attempts       QuizAttempt[]
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("quizzes")
 }
 
 model Question {
-  id            String       @id @default(uuid())
-  quizId        String
-  question      String
-  options       String[]
-  correctAnswer Int
-  points        Int          @default(10)
-  explanation   String?
-  createdAt     DateTime     @default(now())
-
+  id             String    @id @default(cuid())
+  text           String
+  type           QuestionType
+  options        Json?     // For multiple choice questions
+  correctAnswer  String
+  points         Int       @default(1)
+  quizId         String
+  
   // Relations
-  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz           Quiz      @relation(fields: [quizId], references: [id])
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("questions")
 }
 
-model Submission {
-  id        String   @id @default(uuid())
-  userId    String
-  quizId    String
-  answers   Json
-  score     Int
-  timeSpent Int      // in seconds
-  createdAt DateTime @default(now())
-
+model QuizAttempt {
+  id             String    @id @default(cuid())
+  userId         String
+  quizId         String
+  score          Float
+  answers        Json      // Store user answers
+  completedAt    DateTime
+  
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id])
+  quiz           Quiz      @relation(fields: [quizId], references: [id])
+  
+  createdAt      DateTime  @default(now())
 
-  @@map("submissions")
+  @@map("quiz_attempts")
 }
 
-model Achievement {
-  id          String @id @default(uuid())
-  name        String
-  description String
-  icon        String
-  xpReward    Int    @default(500)
-  condition   Json   // JSON storing achievement conditions
-
+model GameProgress {
+  id             String    @id @default(cuid())
+  userId         String
+  type           GameType  // QUIZ, COURSE_COMPLETION, etc.
+  referenceId    String    // ID of the related entity (quiz, course, etc.)
+  pointsEarned   Int
+  experienceGained Int
+  achievementUnlocked String?
+  
   // Relations
-  userAchievements UserAchievement[]
+  user           User      @relation(fields: [userId], references: [id])
+  
+  createdAt      DateTime  @default(now())
 
-  @@map("achievements")
+  @@map("game_progress")
 }
 
-model UserAchievement {
-  id            String    @id @default(uuid())
-  userId        String
-  achievementId String
-  unlockedAt    DateTime  @default(now())
-
-  // Relations
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, achievementId])
-  @@map("user_achievements")
-}
-
-model Badge {
-  id          String @id @default(uuid())
-  name        String
-  description String
-  icon        String
-  color       String
-
-  // Relations
-  userBadges UserBadge[]
-
-  @@map("badges")
-}
-
-model UserBadge {
-  id       String   @id @default(uuid())
-  userId   String
-  badgeId  String
-  earnedAt DateTime @default(now())
-
-  // Relations
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, badgeId])
-  @@map("user_badges")
-}
-
-model Payment {
-  id            String        @id @default(uuid())
-  userId        String
-  amount        Float
-  currency      String        @default("INR")
-  status        PaymentStatus @default(PENDING)
-  paymentMethod String
-  transactionId String?
-  metadata      Json?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("payments")
-}
-
-model Notification {
-  id        String           @id @default(uuid())
-  userId    String
-  title     String
-  message   String
-  type      NotificationType @default(INFO)
-  isRead    Boolean          @default(false)
-  createdAt DateTime         @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
-}
-
-model ChatMessage {
-  id        String   @id @default(uuid())
-  userId    String
-  message   String
-  room      String   @default("general")
-  createdAt DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("chat_messages")
-}
-
+// Enums
 enum Role {
   STUDENT
   INSTRUCTOR
   ADMIN
 }
 
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
 enum EnrollmentStatus {
   ACTIVE
-  PAUSED
   COMPLETED
-  CANCELLED
+  SUSPENDED
 }
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
 }
 
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-  ACHIEVEMENT
-}
-model OTP {
-  id        String   @id @default(uuid())
-  userId    String
-  code      String
-  type      OTPType
-  purpose   String   // 'verification', 'reset-password', '2fa'
-  attempts  Int      @default(0)
-  used      Boolean  @default(false)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-enum OTPType {
-  EMAIL
-  SMS
-}
-
-model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  phone          String?  @unique
-  emailVerified  Boolean  @default(false)
-  phoneVerified  Boolean  @default(false)
-  // ... other fields
-  
-  otps           OTP[]
+enum GameType {
+  QUIZ_COMPLETION
+  COURSE_COMPLETION
+  DAILY_LOGIN
+  STREAK_ACHIEVEMENT
+  LEVEL_UP
 }

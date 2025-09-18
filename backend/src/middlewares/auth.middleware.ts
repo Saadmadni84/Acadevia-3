@@ -3,71 +3,69 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { AuthRequest } from '../types/auth.types';
 
-export const authMiddleware = async (
+export const authenticateToken = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      return res.status(401).json({ error: 'Access denied. No token provided.' });
+      return res.status(401).json({
+        success: false,
+        message: 'Access token required'
+      });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
     
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        role: true,
-        isActive: true,
-      },
+      where: { id: decoded.userId }
     });
 
-    if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+   if (!user || !user.isVerified) {
+    return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+    });
+}
+    
 
-    req.user = user;
+    
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
   }
 };
 
-export const adminMiddleware = (
+export const optionalAuth = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
-  if (req.user?.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied. Admin role required.' });
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      });
+
+      if (user && user.isVerified) {
+        req.userId = user.id;
+      }
+    }
+
+    next();
+  } catch (error) {
+    // Continue without authentication
+    next();
   }
-  next();
 };
-
-export const instructorMiddleware = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  if (req.user?.role !== 'INSTRUCTOR' && req.user?.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied. Instructor role required.' });
-  }
-  next();
-};
-import { Socket } from 'socket.io';
-
-export function authMiddleware(socket: Socket, next: (err?: Error) => void) {
-  // Simulate authentication
-  const user = { id: '123', username: 'alice' };
-  socket.userId = user.id;
-  socket.username = user.username;
-  next();
-}
-
-

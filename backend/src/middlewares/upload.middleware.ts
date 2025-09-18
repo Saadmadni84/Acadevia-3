@@ -1,28 +1,40 @@
 import multer from 'multer';
-import path from 'path';
+import { Request } from 'express';
 
+// Configure multer for memory storage (we'll upload to S3)
 const storage = multer.memoryStorage();
 
-const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
-  const allowedTypes = /jpeg|jpg|png|gif|mp4|mov|avi|pdf|doc|docx/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+// File filter function
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Define allowed file types
+  const allowedTypes = {
+    image: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    video: ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/avi', 'video/mov'],
+    document: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain'
+    ]
+  };
 
-  if (mimetype && extname) {
-    return cb(null, true);
+  const allAllowedTypes = [...allowedTypes.image, ...allowedTypes.video, ...allowedTypes.document];
+
+  if (allAllowedTypes.includes(file.mimetype)) {
+    cb(null, true);
   } else {
-    cb(new Error('Invalid file type'));
+    cb(new Error(`File type ${file.mimetype} is not allowed`));
   }
 };
 
-export const upload = multer({
+// Create multer instance
+export const uploadMiddleware = multer({
   storage,
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB
-  },
   fileFilter,
+  limits: {
+    fileSize: 500 * 1024 * 1024, // 500MB max file size
+    files: 10 // Max 10 files
+  }
 });
-
-export const uploadSingle = (fieldName: string) => upload.single(fieldName);
-export const uploadMultiple = (fieldName: string, maxCount: number) => 
-  upload.array(fieldName, maxCount);
