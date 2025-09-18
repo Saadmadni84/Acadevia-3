@@ -1,0 +1,15 @@
+/* styles/backgrounds.css */
+.school-background {
+  background-image: url('/images/school-background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.school-background-overlay {
+  background: linear-gradient(
+    rgba(255, 255, 255, 0.9), 
+    rgba(255, 255, 255, 0.8)
+  );
+}
