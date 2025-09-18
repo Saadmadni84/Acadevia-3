@@ -1,23 +1,31 @@
-// src/components/common/BackgroundImage.tsx
+'use client'
+
+import React from 'react'
 import Image from 'next/image'
 
 interface BackgroundImageProps {
-  src?: string
-  overlay?: boolean
-  overlayOpacity?: number
+  src: string
+  alt: string
+  className?: string
+  priority?: boolean
 }
 
-export default function SchoolBackground({ children }: { children: React.ReactNode }) {
+export default function BackgroundImage({ 
+  src, 
+  alt, 
+  className = '',
+  priority = false 
+}: BackgroundImageProps) {
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
-      style={{
-        backgroundImage: "url('/images/school-bg.jpg')"
-      }}
-    >
-      <div className="min-h-screen bg-white/20 backdrop-blur-sm">
-        {children}
-      </div>
+    <div className={`relative ${className}`}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        priority={priority}
+        className="object-cover"
+        sizes="100vw"
+      />
     </div>
-  );
+  )
 }

@@ -196,6 +196,7 @@
 <<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
 <<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
 <<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
+<<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
 /******/ 		__webpack_require__.h = function() { return "b84f96fee79b25c8"; }
 =======
 /******/ 		__webpack_require__.h = function() { return "2b99c8d233e1c6b6"; }
@@ -209,6 +210,9 @@
 =======
 /******/ 		__webpack_require__.h = function() { return "9b3ec7ea74a68c58"; }
 >>>>>>> c6563c41 ("initiald"):frontend/.next/static/chunks/webpack.js
+=======
+/******/ 		__webpack_require__.h = function() { return "c21b233268c03941"; }
+>>>>>>> e59b87da ("initial"):frontend/.next/static/chunks/webpack.js
 /******/ 	}();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

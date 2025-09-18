@@ -1,5 +1,6 @@
-'use client';
+'use client'
 
+<<<<<<< HEAD
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -28,46 +29,83 @@ const registerSchema = z.object({
   parentPhone: z.string().optional(),
   subject: z.string().optional(),
 });
+=======
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+>>>>>>> e59b87da ("initial")
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+interface RegisterFormProps {
+  onSuccess: () => void
+  onSwitchToLogin?: () => void
+}
 
-export default function RegisterForm() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1);
-  const [selectedUserType, setSelectedUserType] = useState<string>('');
+export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLoading, setIsLoading] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue,
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-  });
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
 
-  const userType = watch('userType');
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required'
+    }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required'
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email'
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required'
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters'
+    }
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
 
-  const userTypes = [
-    { value: 'student', label: 'Student', icon: GraduationCap, color: 'purple' },
-    { value: 'parent', label: 'Parent', icon: Users, color: 'blue' },
-    { value: 'teacher', label: 'Teacher', icon: BookOpen, color: 'green' },
-  ];
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
-  const grades = [
-    '1st Grade', '2nd Grade', '3rd Grade', '4th Grade', '5th Grade',
-    '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade',
-    '11th Grade', '12th Grade',
-  ];
+  const handleInputChange = (field: keyof typeof formData) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }))
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }))
+    }
+  }
 
-  const subjects = [
-    'Mathematics', 'Science', 'English', 'History', 'Geography',
-    'Computer Science', 'Physics', 'Chemistry', 'Biology', 'Literature',
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
 
-  const onSubmit = async (data: RegisterFormData) => {
+    setIsLoading(true)
+
     try {
+<<<<<<< HEAD
       setIsLoading(true);
       
       // Register user
@@ -82,20 +120,28 @@ export default function RegisterForm() {
       router.push(`/auth/verify-otp?phone=${data.phoneNumber}&userType=${data.userType}`);
     } catch (error: any) {
       toast.error(error.message || 'Registration failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+=======
+      // Mock API call - replace with your actual registration
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
-  const nextStep = () => {
-    if (step === 1 && !selectedUserType) {
-      toast.error('Please select user type');
-      return;
+      console.log('Registration successful:', {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email
+      })
+
+      // Call success callback to close dialog
+      onSuccess()
+    } catch (error) {
+      setErrors({ general: 'Registration failed. Please try again.' })
+>>>>>>> e59b87da ("initial")
+    } finally {
+      setIsLoading(false)
     }
-    setStep(step + 1);
-  };
+  }
 
   return (
+<<<<<<< HEAD
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -117,30 +163,67 @@ export default function RegisterForm() {
                 {i}
               </div>
             ))}
+=======
+    <div className="w-full max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {errors.general && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{errors.general}</p>
+>>>>>>> e59b87da ("initial")
           </div>
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-purple-600"
-              initial={{ width: '0%' }}
-              animate={{ width: `${(step / 3) * 100}%` }}
-              transition={{ duration: 0.3 }}
+        )}
+
+        {/* Name Fields */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="firstName">First Name</Label>
+            <Input
+              id="firstName"
+              type="text"
+              value={formData.firstName}
+              onChange={handleInputChange('firstName')}
+              placeholder="First name"
+              className={errors.firstName ? 'border-red-500' : ''}
             />
+            {errors.firstName && (
+              <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+            )}
+          </div>
+          
+          <div>
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              type="text"
+              value={formData.lastName}
+              onChange={handleInputChange('lastName')}
+              placeholder="Last name"
+              className={errors.lastName ? 'border-red-500' : ''}
+            />
+            {errors.lastName && (
+              <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+            )}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {/* Step 1: User Type Selection */}
-          {step === 1 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <h2 className="text-2xl font-bold text-center mb-2">Join AcadeVela</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-                Select your role to get started
-              </p>
+        {/* Email */}
+        <div>
+          <Label htmlFor="register-email">Email Address</Label>
+          <Input
+            id="register-email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange('email')}
+            placeholder="Enter your email"
+            className={errors.email ? 'border-red-500' : ''}
+            autoComplete="email"
+          />
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
+        </div>
 
+<<<<<<< HEAD
               <div className="space-y-4">
                 {userTypes.map((type) => (
                   <motion.button
@@ -174,204 +257,72 @@ export default function RegisterForm() {
                   </motion.button>
                 ))}
               </div>
+=======
+        {/* Password */}
+        <div>
+          <Label htmlFor="register-password">Password</Label>
+          <Input
+            id="register-password"
+            type="password"
+            value={formData.password}
+            onChange={handleInputChange('password')}
+            placeholder="Create a password"
+            className={errors.password ? 'border-red-500' : ''}
+            autoComplete="new-password"
+          />
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          )}
+        </div>
+>>>>>>> e59b87da ("initial")
 
+        {/* Confirm Password */}
+        <div>
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={handleInputChange('confirmPassword')}
+            placeholder="Confirm your password"
+            className={errors.confirmPassword ? 'border-red-500' : ''}
+            autoComplete="new-password"
+          />
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+          )}
+        </div>
+
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Creating account...
+            </>
+          ) : (
+            'Create Account'
+          )}
+        </Button>
+
+        {onSwitchToLogin && (
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{' '}
               <button
                 type="button"
-                onClick={nextStep}
-                disabled={!selectedUserType}
-                className="w-full mt-8 py-3 px-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                onClick={onSwitchToLogin}
+                className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Continue
-                <ChevronRight className="w-4 h-4" />
+                Sign in here
               </button>
-            </motion.div>
-          )}
-
-          {/* Step 2: Basic Information */}
-          {step === 2 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <h2 className="text-2xl font-bold text-center mb-2">Basic Information</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-                Tell us about yourself
-              </p>
-
-              <div className="space-y-4">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      {...register('name')}
-                      type="text"
-                      placeholder="Enter your full name"
-                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  {errors.name && (
-                    <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-                  )}
-                </div>
-
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">Phone Number</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      {...register('phoneNumber')}
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
-                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  {errors.phoneNumber && (
-                    <p className="text-red-500 text-sm mt-1">{errors.phoneNumber.message}</p>
-                  )}
-                </div>
-
-                {/* Email (Optional) */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Email <span className="text-gray-400">(Optional)</span>
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      {...register('email')}
-                      type="email"
-                      placeholder="your@email.com"
-                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  {errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-8">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="flex-1 py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  Continue
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Step 3: Additional Information */}
-          {step === 3 && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <h2 className="text-2xl font-bold text-center mb-2">Almost Done!</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-                Just a few more details
-              </p>
-
-              <div className="space-y-4">
-                {/* Student specific fields */}
-                {userType === 'student' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Grade</label>
-                      <select
-                        {...register('grade')}
-                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="">Select your grade</option>
-                        {grades.map((grade) => (
-                          <option key={grade} value={grade}>{grade}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Parent's Phone <span className="text-gray-400">(Optional)</span>
-                      </label>
-                      <input
-                        {...register('parentPhone')}
-                        type="tel"
-                        placeholder="+1 (555) 123-4567"
-                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Teacher specific fields */}
-                {userType === 'teacher' && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Primary Subject</label>
-                    <select
-                      {...register('subject')}
-                      className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">Select your subject</option>
-                      {subjects.map((subject) => (
-                        <option key={subject} value={subject}>{subject}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-4 mt-8">
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 py-3 px-4 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    <>
-                      Create Account
-                      <ChevronRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </form>
-
-        {/* Login Link */}
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-          Already have an account?{' '}
-          <a href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium">
-            Sign in
-          </a>
-        </p>
-      </div>
-    </motion.div>
-  );
+            </p>
+          </div>
+        )}
+      </form>
+    </div>
+  )
 }

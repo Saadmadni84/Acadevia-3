@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -13,15 +14,32 @@ import { useToast } from '@/hooks/use-toast';
 
 // Then use it like this:
 const { toast } = useToast();
+=======
+'use client'
 
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  rememberMe: z.boolean().optional(),
-});
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+interface LoginFormProps {
+  onSuccess: () => void
+  onSwitchToRegister?: () => void
+}
+>>>>>>> e59b87da ("initial")
 
+export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+
+<<<<<<< HEAD
 export default function LoginForm() {
   const navigate = useNavigate();
   const {login } = useAuth();
@@ -58,126 +76,93 @@ export default function LoginForm() {
         description: error instanceof Error ? error.message : 'Failed to login. Please try again.',
         variant: 'destructive',
       });
+=======
+    try {
+      // Mock API call - replace with your actual authentication
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Mock validation - replace with real authentication logic
+      if (email === 'john@example.com' && password === 'password') {
+        console.log('Login successful')
+        onSuccess() // This will close the dialog
+      } else {
+        setError('Invalid email or password. Try john@example.com / password')
+      }
+    } catch (err) {
+      setError('Login failed. Please try again.')
+>>>>>>> e59b87da ("initial")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                        <Input
-                          type="email"
-                          placeholder="name@example.com"
-                          className="pl-10"
-                          disabled={isLoading}
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Enter your password"
-                          className="pl-10 pr-10"
-                          disabled={isLoading}
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex items-center justify-between">
-                <FormField
-                  control={form.control}
-                  name="rememberMe"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal cursor-pointer">
-                        Remember me
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Signing in...' : 'Sign in'}
-              </Button>
-            </form>
-          </Form>
-
-          <div className="mt-4 flex items-center justify-between">
-            <span className="w-full border-t" />
-            <span className="px-3 text-sm text-gray-500">OR</span>
-            <span className="w-full border-t" />
+    <div className="w-full max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{error}</p>
           </div>
+        )}
 
+        <div>
+          <Label htmlFor="login-email">Email Address</Label>
+          <Input
+            id="login-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            required
+            autoComplete="email"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="login-password">Password</Label>
+          <Input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            required
+            autoComplete="current-password"
+          />
+        </div>
+
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Signing in...
+            </>
+          ) : (
+            'Sign In'
+          )}
+        </Button>
+
+        {onSwitchToRegister && (
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={onSwitchToRegister}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Create one here
+              </button>
+            </p>
+          </div>
+        )}
+      </form>
+
+<<<<<<< HEAD
           <div className="mt-4 space-y-2">
             <Button
               variant="outline"
@@ -217,6 +202,15 @@ export default function LoginForm() {
           </Link>
         </CardFooter>
       </Card>
+=======
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <p className="text-blue-700 text-xs">
+          <strong>Demo credentials:</strong><br />
+          Email: john@example.com<br />
+          Password: password
+        </p>
+      </div>
+>>>>>>> e59b87da ("initial")
     </div>
-  );
+  )
 }
