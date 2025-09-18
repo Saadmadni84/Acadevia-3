@@ -1,282 +1,191 @@
-import { Response } from 'express';
-import bcrypt from 'bcryptjs';
+import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../types/auth.types';
-import { uploadToS3 } from '../config/aws';
 
 export class UserController {
-  async getProfile(req: AuthRequest, res: Response) {
+  // GET /user/profile
+  static async getProfile(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user!.id;
-
       const user = await prisma.user.findUnique({
-        where: { id: userId },
+        where: { id: req.userId },
         select: {
           id: true,
+          name: true,
           email: true,
-          username: true,
-          firstName: true,
-          lastName: true,
+          phone: true,
           avatar: true,
-          role: true,
+          points: true,
           level: true,
-          xp: true,
-          coins: true,
-          streak: true,
+          streakDays: true,
+          completedCourses: true,
           createdAt: true,
-          enrollments: {
+          enrolledCourses: {
             include: {
               course: {
                 select: {
                   id: true,
                   title: true,
                   thumbnail: true,
-                },
-              },
-            },
-          },
-          achievements: {
-            include: {
-              achievement: true,
-            },
-          },
-          badges: {
-            include: {
-              badge: true,
-            },
-          },
-        },
+                  category: true
+                }
+              }
+            }
+          }
+        }
       });
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ 
+          success: false, 
+          message: 'User not found' 
+        });
       }
 
-      res.json(user);
+      res.status(200).json({
+        success: true,
+        user
+      });
     } catch (error) {
       console.error('Get profile error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ success: false, message: 'Server error' });
     }
   }
 
-  async updateProfile(req: AuthRequest, res: Response) {
+  // PUT /user/profile
+  static async updateProfile(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user!.id;
-      const { firstName, lastName, username } = req.body;
-
-      // Check if username is already taken
-      if (username) {
-        const existingUser = await prisma.user.findFirst({
-          where: {
-            username,
-            NOT: { id: userId },
-          },
-        });
-
-        if (existingUser) {
-          return res.status(400).json({ error: 'Username already taken' });
-        }
-      }
-
-      const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          firstName,
-          lastName,
-          username,
-        },
+      const { name, email, phone, avatar } = req.body;
+      
+      const user = await prisma.user.update({
+        where: { id: req.userId },
+        data: { name, email, phone, avatar },
         select: {
           id: true,
+          name: true,
           email: true,
-          username: true,
-          firstName: true,
-          lastName: true,
+          phone: true,
           avatar: true,
-          role: true,
-          level: true,
-          xp: true,
-          coins: true,
-        },
+          points: true,
+          level: true
+        }
       });
 
-      res.json({
-        message: 'Profile updated successfully',
-        user: updatedUser,
+      res.status(200).json({
+        success: true,
+        user
       });
     } catch (error) {
       console.error('Update profile error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ success: false, message: 'Server error' });
     }
   }
 
-  async uploadAvatar(req: AuthRequest, res: Response) {
+  // GET /user/progress
+  static async getLearningProgress(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user!.id;
-      const file = req.file;
-
-      if (!file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-      }
-
-      // Upload to S3
-      const key = `avatars/${userId}/${Date.now()}-${file.originalname}`;
-      const uploadResult = await uploadToS3(file, key);
-
-      // Update user avatar
-      const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: { avatar: uploadResult.Location },
-        select: {
-          id: true,
-          avatar: true,
-        },
-      });
-
-      res.json({
-        message: 'Avatar uploaded successfully',
-        avatar: updatedUser.avatar,
-      });
-    } catch (error) {
-      console.error('Upload avatar error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  async changePassword(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.user!.id;
-      const { currentPassword, newPassword } = req.body;
-
-      // Get user's current password
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { password: true },
-      });
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      // Verify current password
-      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
-      if (!isValidPassword) {
-        return res.status(400).json({ error: 'Current password is incorrect' });
-      }
-
-      // Hash new password
-      const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-      // Update password
-      await prisma.user.update({
-        where: { id: userId },
-        data: { password: hashedPassword },
-      });
-
-      res.json({ message: 'Password changed successfully' });
-    } catch (error) {
-      console.error('Change password error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  async getLeaderboard(req: AuthRequest, res: Response) {
-    try {
-      const { page = 1, limit = 10 } = req.query;
-      const skip = (Number(page) - 1) * Number(limit);
-
-      const users = await prisma.user.findMany({
-        where: { isActive: true },
-        select: {
-          id: true,
-          username: true,
-          firstName: true,
-          lastName: true,
-          avatar: true,
-          level: true,
-          xp: true,
-        },
-        orderBy: [
-          { level: 'desc' },
-          { xp: 'desc' },
-        ],
-        skip,
-        take: Number(limit),
-      });
-
-      const total = await prisma.user.count({
-        where: { isActive: true },
-      });
-
-      res.json({
-        users,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          pages: Math.ceil(total / Number(limit)),
-        },
-      });
-    } catch (error) {
-      console.error('Get leaderboard error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  async getUserProgress(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.user!.id;
-
       const progress = await prisma.progress.findMany({
-        where: { userId },
+        where: { userId: req.userId },
         include: {
           course: {
             select: {
               id: true,
               title: true,
               thumbnail: true,
-            },
+              duration: true
+            }
           },
-          lesson: {
-            select: {
-              id: true,
-              title: true,
-            },
-          },
-        },
-        orderBy: { updatedAt: 'desc' },
+          lectureProgress: {
+            where: { isCompleted: true },
+            include: {
+              lecture: {
+                select: {
+                  title: true,
+                  duration: true
+                }
+              }
+            }
+          }
+        }
       });
 
-      const stats = await prisma.progress.aggregate({
-        where: { userId },
-        _count: {
-          id: true,
-        },
-        _sum: {
-          timeSpent: true,
-        },
-      });
+      const stats = {
+        totalCourses: progress.length,
+        completedCourses: progress.filter(p => p.isCompleted).length,
+        totalHours: Math.round(progress.reduce((acc, p) => acc + p.timeSpent, 0) / 60),
+        averageProgress: progress.length > 0 
+          ? Math.round(progress.reduce((acc, p) => acc + p.progressPercentage, 0) / progress.length)
+          : 0
+      };
 
-      const completedLessons = await prisma.progress.count({
-        where: {
-          userId,
-          isComplete: true,
-        },
-      });
-
-      res.json({
+      res.status(200).json({
+        success: true,
         progress,
-        stats: {
-          totalLessons: stats._count.id,
-          completedLessons,
-          totalTimeSpent: stats._sum.timeSpent || 0,
-          completionRate: stats._count.id > 0 ? (completedLessons / stats._count.id) * 100 : 0,
-        },
+        stats
       });
     } catch (error) {
-      console.error('Get user progress error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Get progress error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  }
+
+  // GET /user/leaderboard
+  static async getLeaderboard(req: AuthRequest, res: Response) {
+    try {
+      const { limit = 10, type = 'points' } = req.query;
+      
+      let orderBy: any = { points: 'desc' };
+      if (type === 'level') orderBy = { level: 'desc' };
+      if (type === 'courses') orderBy = { completedCourses: 'desc' };
+
+      const leaderboard = await prisma.user.findMany({
+        where: { isVerified: true },
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          points: true,
+          level: true,
+          completedCourses: true
+        },
+        orderBy,
+        take: parseInt(limit as string)
+      });
+
+      // Get current user rank
+      const currentUser = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          points: true,
+          level: true,
+          completedCourses: true
+        }
+      });
+      
+      const fieldName = type === 'level' ? 'level' : type === 'courses' ? 'completedCourses' : 'points';
+      const userRank = await prisma.user.count({
+        where: {
+          isVerified: true,
+          [fieldName]: { gt: currentUser?.[fieldName as keyof typeof currentUser] }
+        }
+      }) + 1;
+
+      res.status(200).json({
+        success: true,
+        leaderboard: leaderboard.map((user, index) => ({
+          ...user,
+          rank: index + 1
+        })),
+        currentUser: currentUser ? {
+          ...currentUser,
+          rank: userRank
+        } : null
+      });
+    } catch (error) {
+      console.error('Get leaderboard error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
     }
   }
 }
-
-export default new UserController();
