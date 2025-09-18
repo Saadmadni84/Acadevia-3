@@ -207,7 +207,7 @@ export default function StudentDashboard() {
                                         { subject: 'History', value: 15, color: '#F59E0B' },
                                         { subject: 'Others', value: 10, color: '#EF4444' },
                                     ]}
-                                    height={300}
+                                
                                 />
                             </Card>
                         </motion.div>

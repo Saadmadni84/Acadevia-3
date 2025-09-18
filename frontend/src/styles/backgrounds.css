@@ -1,15 +1,15 @@
-/* styles/backgrounds.css */
-.school-background {
+/* styles/background.module.css */
+.schoolBackground {
   background-image: url('/images/school-background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  min-height: 100vh;
 }
 
-.school-background-overlay {
-  background: linear-gradient(
-    rgba(255, 255, 255, 0.9), 
-    rgba(255, 255, 255, 0.8)
-  );
+.overlay {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  min-height: 100vh;
 }
