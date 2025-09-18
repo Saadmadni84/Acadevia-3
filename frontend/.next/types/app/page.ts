@@ -1,8 +1,8 @@
-// File: /Users/saadmadni/Downloads/2nd  year/Acadevia/Acadevia/frontend/src/app/courses/page.tsx
-import * as entry from '../../../../src/app/courses/page.js'
+// File: /Users/saadmadni/Downloads/2nd  year/Acadevia/Acadevia/frontend/src/app/page.tsx
+import * as entry from '../../../src/app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
-type TEntry = typeof import('../../../../src/app/courses/page.js')
+type TEntry = typeof import('../../../src/app/page.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{

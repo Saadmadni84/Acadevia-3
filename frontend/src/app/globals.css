@@ -15,7 +15,25 @@
   body {
     font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
+  background-image: url('/images/school-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+
   }
+  body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* 50% black overlay */
+  pointer-events: none;
+  z-index: -1;
+}
 }
 
 @layer components {
@@ -31,3 +49,4 @@
     @apply bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300;
   }
 }
+

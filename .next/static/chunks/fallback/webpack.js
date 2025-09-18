@@ -92,7 +92,22 @@
 /******/ 	}();
 /******/ 	
 <<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
+<<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
 =======
+=======
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	!function() {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = function(module) {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				function() { return module['default']; } :
+/******/ 				function() { return module; };
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	}();
+/******/ 	
+>>>>>>> a5113af3 ("initialf"):frontend/.next/static/chunks/webpack.js
 /******/ 	/* webpack/runtime/create fake namespace object */
 /******/ 	!function() {
 /******/ 		var getProto = Object.getPrototypeOf ? function(obj) { return Object.getPrototypeOf(obj); } : function(obj) { return obj.__proto__; };
@@ -179,6 +194,7 @@
 /******/ 	!function() {
 <<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
 <<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
+<<<<<<< HEAD:.next/static/chunks/fallback/webpack.js
 /******/ 		__webpack_require__.h = function() { return "b84f96fee79b25c8"; }
 =======
 /******/ 		__webpack_require__.h = function() { return "2b99c8d233e1c6b6"; }
@@ -186,6 +202,9 @@
 =======
 /******/ 		__webpack_require__.h = function() { return "dc4a02675dd09e4e"; }
 >>>>>>> 396f503d ("initial"):frontend/.next/static/chunks/webpack.js
+=======
+/******/ 		__webpack_require__.h = function() { return "ec08890a7bd5a58b"; }
+>>>>>>> a5113af3 ("initialf"):frontend/.next/static/chunks/webpack.js
 /******/ 	}();
 /******/ 	
 /******/ 	/* webpack/runtime/global */
