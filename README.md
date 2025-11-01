@@ -1,86 +1,168 @@
-Gamified Learning Platform
-A cutting-edge, gamified learning platform designed to boost student engagement and achievement through interactive modules, real-time progression, and collaborative challenges. Built using modern web technologies for performance, scalability, and user experience.
+# Acadevia — Gamified Learning Platform
 
-Features
-User authentication and profile management
+Engaging, modular learning with real-time progression, badges, and leaderboards. Built with a Next.js 14 frontend and a TypeScript/Express backend powered by Prisma and Socket.IO.
 
-Interactive lessons and quizzes with dynamic feedback
+## ✨ Features
 
-Leaderboards, badges, and achievements to encourage completion
+- Authentication and profiles (NextAuth on the frontend; JWT/Passport on the backend)
+- Interactive lessons, quizzes, and dynamic feedback
+- Badges, achievements, and leaderboards
+- Real-time progress and collaboration via WebSockets
+- Modular course design and dashboard analytics
+- Mobile‑responsive UI with Tailwind + MUI
+- Payment, notifications, and messaging integrations (Razorpay, Twilio)
 
-Modular course design for easy expansion
+## 🧱 Tech Stack
 
-Real-time progress tracking
+- Frontend: Next.js 14, TypeScript, TailwindCSS, MUI, NextAuth, React Query, Redux Toolkit, Chart.js, Framer Motion, Lucide Icons, Socket.IO client
+- Backend: Node.js, Express, TypeScript, Prisma, Passport JWT, Redis, Socket.IO, Razorpay, Twilio, AWS SDK
+- Database: Prisma ORM (Postgres/MySQL — set via DATABASE_URL)
+- Tooling: ESLint, Jest (backend), Tailwind plugins, Prettier (inferred)
 
-Mobile-responsive interface
+## 🗂️ Monorepo Structure
 
-Technology Stack
-Technology	Purpose
-Next.js	React framework & SSR
-TypeScript	Type-safe coding
-JavaScript	Core logic
-HTML5	Markup & offline support
-TailwindCSS	Fast, utility-first styling
-Node.js	Server-side logic & API
-Getting Started
-Prerequisites
+```
+Acadevia-3/
+├─ frontend/                  # Next.js 14 app (primary UI)
+│  ├─ src/                    # Routes, components, features
+│  ├─ public/                 # Static assets
+│  ├─ next.config.js
+│  ├─ tailwind.config.js
+│  ├─ package.json
+│  └─ ... (tsconfig, postcss, etc.)
+├─ backend/                   # Express + TS API
+│  ├─ src/
+│  │  ├─ app.ts               # Express app
+│  │  ├─ server.ts            # Bootstraps server & sockets
+│  │  ├─ routes/              # API routes
+│  │  ├─ controllers/         # Controllers
+│  │  ├─ services/            # Business logic
+│  │  ├─ sockets/             # Socket.IO events
+│  │  ├─ middlewares/         # Auth, validation, etc.
+│  │  ├─ validations/         # Joi/Zod schemas
+│  │  └─ utils/               # Helpers
+│  ├─ prisma/                 # Prisma schema & seed
+│  ├─ tsconfig.json
+│  ├─ package.json
+│  └─ Dockerfile              # Placeholder; extend as needed
+└─ README.md
+```
 
-Node.js v16+
+## 🚀 Getting Started
 
-npm or yarn
+Prerequisites:
+- Node.js 18+ (recommend LTS)
+- npm or yarn
+- Database (Postgres/MySQL/SQLite via Prisma’s DATABASE_URL)
+- Redis (optional)
 
-Git
+### 1) Backend setup
 
-Installation
-
-Clone the repository:
-
-bash
-git clone https://github.com/yourusername/gamified-learning-platform.git
-cd gamified-learning-platform
-Install dependencies:
-
-bash
+```bash
+cd backend
+cp .env.example .env   # create and fill if example is empty
 npm install
-# or
-yarn install
-Configure environment variables:
 
-Copy .env.example to .env
+# Prisma
+npm run generate
+npm run migrate        # or: npx prisma migrate dev
+# optional: seed
+npm run seed
 
-Fill in required keys (database URI, API secrets, etc.)
-
-Run the development server:
-
-bash
+# Dev server
 npm run dev
-# or
-yarn dev
-Open http://localhost:3000 to start.
+```
 
-Usage
-Register a new account or sign in.
+Common backend env:
+- DATABASE_URL=
+- JWT_SECRET=
+- REDIS_URL=
+- RAZORPAY_KEY_ID= / RAZORPAY_KEY_SECRET=
+- TWILIO_ACCOUNT_SID= / TWILIO_AUTH_TOKEN= / TWILIO_PHONE_NUMBER=
+- AWS_ACCESS_KEY_ID= / AWS_SECRET_ACCESS_KEY= / AWS_REGION=
+- PORT=4000
+- CORS_ORIGIN=http://localhost:3000
 
-Browse available courses and enroll.
+### 2) Frontend setup
 
-Complete lessons, quizzes, and challenges.
+Open a second terminal:
 
-Unlock badges and climb the leaderboard!
+```bash
+cd frontend
+cp .env.local.example .env.local   # create and fill if example is empty
+npm install
+npm run dev
+```
 
-Contributing
-We welcome contributions! Please follow these steps:
+Common frontend env:
+- NEXT_PUBLIC_API_URL=http://localhost:4000
+- NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+- NEXTAUTH_URL=http://localhost:3000
+- NEXTAUTH_SECRET=your_long_random_string
+- NEXT_PUBLIC_RAZORPAY_KEY_ID=
 
-Fork the repository
+Open http://localhost:3000 to view the app.
 
-Create a feature branch (git checkout -b feature/your-feature)
+## 🧪 Scripts
 
-Commit your changes (git commit -am 'Add new feature')
+Frontend (from frontend/):
+- dev: next dev
+- build: next build
+- start: next start
+- lint: next lint
 
-Push to your branch (git push origin feature/your-feature)
+Backend (from backend/):
+- dev: nodemon src/server.ts
+- build: tsc
+- start: node dist/server.js
+- migrate: npx prisma migrate dev
+- generate: npx prisma generate
+- seed: ts-node prisma/seed.ts
+- test: jest
 
-Create a pull request
+## 🔌 API & Sockets
 
-For major changes, open an issue first to discuss.
+- REST API: Express routes under `backend/src/routes` with controllers under `backend/src/controllers`
+- Auth: JWT with Passport (backend); NextAuth (frontend)
+- Real‑time: Socket.IO under `backend/src/sockets` with a Socket.IO client in the frontend
+- Validation: Joi/Zod under `backend/src/validations`
 
-License
-This project is licensed under the MIT License.
+> For a detailed API reference, we can add Swagger/OpenAPI in a follow-up.
+
+## 🧰 Development Notes
+
+- Code Style: ESLint + Tailwind plugin (frontend); Prettier (inferred)
+- Database: Use Prisma Studio for local inspection: `npx prisma studio`
+- Testing: Backend uses Jest (`npm test`)
+- Docker: Backend Dockerfile/docker-compose present as stubs — extend for production.
+
+## 📦 Deployment
+
+- Frontend: Vercel or any Node host (Next.js 14)
+- Backend: Any Node host or Docker
+- Database/Redis: Use managed providers (Neon/Planetscale/Supabase; Upstash/Redis Cloud)
+
+## 🔐 Security
+
+- Don’t commit `.env` files or secrets
+- Configure `CORS_ORIGIN` to your frontend in production
+- Use HTTPS and secure cookies for NextAuth
+
+## 🤝 Contributing
+
+1) Fork the repo
+2) Create a feature branch: `git checkout -b feature/awesome`
+3) Commit: `git commit -m "feat: add awesome"`
+4) Push: `git push origin feature/awesome`
+5) Open a PR
+
+## 📝 License
+
+MIT
+
+## 🗺️ Roadmap
+
+- [ ] Instructor dashboards and content authoring
+- [ ] Gamified learning paths and seasonal events
+- [ ] Notifications center (in-app + email/SMS)
+- [ ] Role-based access control
